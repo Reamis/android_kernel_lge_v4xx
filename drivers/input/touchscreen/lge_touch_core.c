@@ -65,6 +65,7 @@ extern void touch_disable_irq(unsigned int irq);
 
 struct touch_device_driver*	touch_device_func;
 struct workqueue_struct*	touch_wq;
+static int lpwg_status = 0;
 
 struct lge_touch_attribute {
 	struct attribute	attr;
@@ -3266,6 +3267,7 @@ static ssize_t store_lpwg_notify(struct lge_touch_data *ts, const char *buf, siz
 			else touch_gesture_enable = 0;
 			atomic_set(&ts->device_init, 1);
 			mutex_unlock(&ts->irq_work_mutex);
+			lpwg_status = (value[0]) ? 1 : 0;
             break;
         case 2 :
 			touch_device_func->lpwg(ts->client, LPWG_LCD_X, value[0], NULL);
@@ -3308,6 +3310,11 @@ static ssize_t store_lpwg_notify(struct lge_touch_data *ts, const char *buf, siz
         }
     }
     return count;
+}
+
+static ssize_t show_lpwg_notify(struct i2c_client *client, char *buf)
+{
+	return sprintf(buf, "%d\n", lpwg_status);
 }
 
 static ssize_t store_global_access_pixel(struct lge_touch_data *ts, const char *buf, size_t count)
@@ -3362,7 +3369,7 @@ static LGE_TOUCH_ATTR(chstatus, S_IRUGO | S_IWUSR, show_chstatus, NULL);
 static LGE_TOUCH_ATTR(power_control, S_IRUGO | S_IWUSR, NULL, power_control_store);
 static LGE_TOUCH_ATTR(global_access_pixel, S_IRUGO | S_IWUSR, show_global_access_pixel, store_global_access_pixel);
 static LGE_TOUCH_ATTR(lpwg_data, S_IRUGO | S_IWUSR, show_lpwg_data, store_lpwg_data);
-static LGE_TOUCH_ATTR(lpwg_notify, S_IRUGO | S_IWUSR, NULL, store_lpwg_notify);
+static LGE_TOUCH_ATTR(lpwg_notify, S_IRUGO | S_IWUSR, show_lpwg_notify, store_lpwg_notify);
 
 static struct attribute *lge_touch_attribute_list[] = {
 	&lge_touch_attr_platform_data.attr,
